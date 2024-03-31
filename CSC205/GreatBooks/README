@@ -1,0 +1,9 @@
+Library Methods
+	fillLib(String file.dat)//Appends the library with new books 
+				  EX: Check for duplicates add another .dat
+	sortLib()//Sorts Lib 
+		   functionallity might be added to the fillLib methood
+	menu()//Displays the menu and deals with the looping
+	serch()//Use Binary Serch using the book.compareTo method
+		 Ex. Make an output Listing if it's not found
+	displayRecords()//displays all books 	 

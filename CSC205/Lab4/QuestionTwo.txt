@@ -1,0 +1,5 @@
+a) The difference between an array lists capacity and size is that. the capacity of the arraylist is 500 however the size is the amount of things actually stored in the array list as it can freely change as things are added and removed from it.
+b) an array list can store 500 elements.
+c)the arraylist can change freely, you will most likely not have to worry about an array list overflowing. it is also easier to move things arround in an array list.
+d) Arrays can be multi demsnesional, the stnrax for arrays are also more simplistic.
+ 

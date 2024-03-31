@@ -1,0 +1,19 @@
+Objects
+	BaseBallForest
+		Bavg Tree
+			-tree sorted by BAVG
+		Name Tree
+			-tree sorted by Name
+
+Excerpt From HTML FILE
+ ... 2 <b> MARGOUIRK, Brent... .344</b> 34-33 ...
+	first I grabbed everything between the bold tags
+	then I seperated the Bavg from the name by using substrings
+	then I converted the Bavg to a number and worked the name into the correct format
+	I then inserted it into the 2 bsts.
+
+Insertions into each tree
+	Once the data is put in the one on root is sorted by pName and the one with root2 is sorted by Bavg.
+
+Notes:
+-There has to be a better way to set everything to lowercase but I spent alot of time looking for it and couldnt find it.	

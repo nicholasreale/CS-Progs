@@ -1,0 +1,286 @@
+Script started on Mon 13 Feb 2023 05:18:35 AM EST
+]0;reale_nf@cobra:~/Project1[?1034h[reale_nf@cobra Project1]$ cat e[KEditor.cpp 
+#include <iostream>
+#include "linelist.h"
+#include <fstream>
+#include <cstdlib>
+using namespace std; 
+
+
+void Start(int argc, char *argv[], LineList& L);
+void LdFile(char *argv[], LineList& L);
+void GetCmd (LineList& L, char& command);
+void InsertLine(LineList& L);
+
+int main(int argc, char *argv[]){
+	LineList L;
+	char command;
+	
+	Start(argc, argv, L);
+	do{
+		GetCmd(L, command);
+
+		switch(command){
+			case 'I':
+				InsertLine(L); 
+				break;
+			case 'D':
+				L.deleteLine();
+				break;
+			case 'L':
+				L.printList();
+				break;
+			case 'P':
+				L.movePrevLine();
+				break;
+			case 'N':
+				L.moveNextLine();
+				break;
+		}
+
+	}
+	while (command != 'E'); 
+	LdFile(argv, L);
+	return 0;
+}
+
+void Start (int argc, char *argv[], LineList& L){
+	int indexNo = 0;
+	if(argc == 1){
+		cout << "File Not Input" << endl;
+		exit(1);
+	}
+	if(argc < 2){
+		cout << "Too many Command Line Arguments Try Again" << endl;
+		exit(1);
+	}
+	else{
+		ifstream inFile;
+		string Line;
+		inFile.open(argv[1]);
+		if (inFile.fail()){
+			cout<< "File Not Found" << endl;
+			exit(1);
+		}
+		while(getline(inFile,Line)){
+			L.insertLine(Line);
+		}
+		inFile.close();
+	}		
+} 
+
+void LdFile(char *argv[], LineList& L){
+	ofstream outFile;
+	outFile.open(argv[1]);
+	
+	L.goToTop();
+	int lineNum = L.getCurrLineNum();
+
+	while(lineNum < (L.getLength()+1)){
+		outFile<< L.getCurrLine() << endl;
+		L.moveNextLine();
+		lineNum++;	
+	}
+	
+	outFile.close();
+}
+
+void GetCmd(LineList& L, char& command){
+	char userInput[255];
+	cout << L.getCurrLineNum() << "> ";
+	cin >> userInput;
+	if(userInput != NULL && userInput[1] != ' '){
+		command = toupper(userInput[0]); 
+	}
+	else{
+		command = 'X';
+	}	
+}
+
+void InsertLine(LineList& L){
+	int lineNum = L.getCurrLineNum() + 1;
+	string hold;
+	
+	if (L.getCurrLineNum() > L.getLength())
+		lineNum --;
+
+	cout << lineNum << "> ";
+	
+	cin.ignore();
+	getline(cin, hold);
+	L.insertLine(hold);
+}
+]0;reale_nf@cobra:~/Project1[reale_nf@cobra Project1]$ cat linelist.cpp
+
+#include <iostream>
+#include "linelist.h"
+
+LineList::LineList()
+{
+	LineNode *line = new LineNode;
+	LineNode *line2 = new LineNode;
+
+	line -> info = topMessage;
+	currLine = line;
+	currLineNum = 0;
+	length = 0;
+	line2 -> info = bottomMessage;
+	currLine -> back = NULL;
+	currLine -> next = line2;
+	line2 -> back = line;
+	line2 -> next = NULL;
+}
+
+void LineList::goToTop() 
+{
+	// Post : Advances currLine to line 1
+	while(currLine -> info  != topMessage){
+		currLine = currLine -> back;
+	}
+	currLine = currLine -> next;
+	currLineNum = 1;
+}
+
+void LineList::goToBottom() 
+{
+	// Post : Advances currLine to last line
+	while(currLine -> info != bottomMessage){
+		currLine = currLine -> next; 
+	}
+	currLine = currLine -> back;
+	currLineNum = length;
+}
+
+void LineList::insertLine(string newLine)
+{
+	// post : newLine has been inserted after the current line
+	LineNode *newLn = new LineNode;
+	newLn -> info = newLine;
+	newLn -> next = currLine -> next;
+	currLine -> next = newLn;
+	newLn -> back = currLine;
+	
+	currLineNum++;
+	currLine = newLn;
+	length++;
+}
+
+void LineList::deleteLine()
+{
+	// post : deletes the current line leaving currentLine
+	//	  pointing to line following
+	LineNode *followingLn = currLine -> back;	
+	if(followingLn -> info == topMessage && followingLn -> next -> info == bottomMessage){
+		currLineNum = 0;
+		length = 0;
+	}
+	else if (followingLn -> info == topMessage){
+		currLine -> back -> next = currLine -> next;
+		currLine -> next -> back = currLine -> back;
+		delete currLine;	
+		currLine = followingLn->next;
+		currLineNum --;
+		length --;
+	}
+	else{	
+		currLine -> back -> next = currLine -> next;
+		currLine -> next -> back = currLine -> back;
+		delete currLine;
+		currLine = followingLn;
+		currLineNum--;
+		length --;
+	} 
+}
+
+void LineList::printList() 
+{
+	int lineNum = 1;
+	
+	LineNode *mark = currLine;
+	int markNum = currLineNum;
+
+	goToTop();
+	
+	LineNode *Line = currLine;
+
+	while(Line -> info != bottomMessage)
+	{
+		cout << lineNum << "> " << Line -> info <<endl;
+		Line = Line -> next;
+		lineNum++;
+	}
+	
+	currLine = mark;
+	currLineNum = markNum;
+}
+
+string LineList::getCurrLine() const
+{
+	return currLine-> info;
+}
+
+void LineList::moveNextLine()
+{
+	// Post : Advances currLine (unless already at last line)
+	if (currLine -> next -> info != bottomMessage){
+		currLine = currLine -> next;
+		currLineNum ++; 
+	}
+}
+
+void LineList::movePrevLine()
+{
+	// Post : Advances currLine (unless already at last line)
+	if(currLine -> back -> info != topMessage){
+		currLine = currLine -> back;
+		currLineNum --;
+	}
+}
+
+int LineList::getCurrLineNum() const
+{
+	return currLineNum;
+}
+
+int LineList::getLength() const
+{
+	return length;
+}
+]0;reale_nf@cobra:~/Project1[reale_nf@cobra Project1]$ gpp[K[K++ editp[K[K[K[K[KEditor.cpp linelist.cpp
+]0;reale_nf@cobra:~/Project1[reale_nf@cobra Project1]$ ./a.out testfile 
+4> L
+1> Line 1
+2> Line 2
+3> Line 3
+4> Hello
+4> D
+3> D
+2> D
+1> L
+1> Line 1
+1> I
+2> Line 2  
+2> I
+3> Line 3  
+3> a
+3> P
+2> P
+1> N
+2> P
+1> I
+2> Hello
+2> L
+1> Line 1
+2> Hello
+3> Line 2
+4> Line 3
+2> e
+]0;reale_nf@cobra:~/Project1[reale_nf@cobra Project1]$ cat testfile 
+Line 1
+Hello
+Line 2
+Line 3
+]0;reale_nf@cobra:~/Project1[reale_nf@cobra Project1]$ exit
+exit
+
+Script done on Mon 13 Feb 2023 05:20:49 AM EST

@@ -1,0 +1,48 @@
+int main(int argc, char *argv[])
+	- Declares the Variables that are used.
+	- Sends The command Line arguments to the ParseFile() Method
+	- Sends The queue made in the ParseFile method into the MakeGraph method
+	- Prints the verticies with the printCities method
+	- marks the start location given by the user with the getStart method
+	- Runs Dijkstras algorithem
+	- Prints the output
+
+void ParseFile(int argc, char *argv[], Queue<Input>& Inqueue)
+	- Checks that the proper command line arguments exist and that they actually have a corrisponding file
+	- Takes each individual line and sends it into the sepIn method
+
+void sepIn(string lineIn, Queue<Input>& Inqueue)
+	- finds the location of both of the simicolens and creates seprates strings and ints based on where the data was in respect to the simicolens
+	- adds them to an Input struct and then inserts them into the Inqueue
+
+void MakeGraph( Graph<string>& G, Queue<Input> data, vector<strings &Names, int& numVert, HashTable<string>& vExist)
+	- while the data vector is not empty
+		- It checks if there are any new verticies in either the Origin or the destination by refrencing the HashTable
+		- Adds them to the graph if thet are not 
+		- Then adds the edges that are given by each input
+
+void dijkstra(Graph<string> G, vector<dElement>& E, int currIndex)
+	- Does the brunt of the actual computation
+	- Does exactly what the PDF says
+	- once an element has been marked it will move the mark to the lowest index number not occupied by a marked Element in the E vector
+
+void getStart(vector<dElement>& E, HashTable<string> vExist, int& currIndex)
+	- prompts the user for starting Vertex until one is selected
+	- once one is selected it will mark the vertex set the distance and note the index it is currently at
+		- The mark is so the dijkstra() method to be able to know where it is without having to waste time serching for it
+
+void printCities(int numVerts, vector<string> E) 
+	- The name is confusing, I was using the first gindata file
+	- prints all the verticies and the first menu
+
+void printOutput( vector<dElement> E)
+	- Prints the results of the dijkstra method.
+
+int getNextIndex(vector<dElement> E, string NextName)
+	- used in the dijkstra method
+	- it takes the name given from the graph class vector queue
+	- finds where it is in the dijkstra table
+	- returns the index of it
+
+int findMin(vector<dElement> E)
+	-Finds the index of the lowest non marked dijkstra element and returns it.

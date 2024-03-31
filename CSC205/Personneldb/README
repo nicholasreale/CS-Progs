@@ -1,0 +1,17 @@
+Abstract Class Employee
+	-Incluedes 2 Setable and getable values(Name and Wage)
+	-Abstract Method ComputePay
+Class Hourly Employee
+	-Includes computePay(for hourly Overtime)
+	-Also overwrites Object's toString
+Class Salaried Employee
+	-includes computePay(for Salaried Employees)
+	-Also overwrites Objects's toString
+Class Personnel Database
+	-menu handles all of the menuing
+	-addEmployee adds 1 employee to the arraylist by prompting the user
+	-raiseWages prompts the user to input a persentage that the wages will increese then increeses them.
+	-computePay calculates the amount of pay each employee will get based on the number of hours they worked
+	-printRecords prints the ArrayList of employees
+	-downloadData puts the Employee ArrayList into an Object File
+	-uploadData puts the objectFile into the Employee ArrayList

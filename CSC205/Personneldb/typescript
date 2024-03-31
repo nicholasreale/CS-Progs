@@ -1,0 +1,132 @@
+Script started on Sun 06 Nov 2022 11:41:59 PM EST
+]0;reale_nf@cobra:~/Personneldb[?1034h[reale_nf@cobra Personneldb]$ javac PersonnelDatabase.[K.java
+Note: PersonnelDatabase.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+]0;reale_nf@cobra:~/Personneldb[reale_nf@cobra Personneldb]$ java PersonnelDatabase.[K
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+n
+
+Enter the Name of the New Employee: Plumber  , Phil
+
+Hourly (h) or Salaried (s): a
+Input Not Understood Please Try Again
+
+Hourly (h) or Salaried (s): h
+
+Please Enter the Hourly Pay: 40.00
+Employee Added
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+n
+
+Enter the Name of the New Employee: Coder, Carol  
+
+Hourly (h) or Salaried (s): s
+
+Please Enter Yearly Salary: 80000
+Employee Added
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+c
+Enter number of hours worked by Plumber, Phil
+5- 0
+Pay: $2,200.00
+Enter number of hours worked by Coder, Carol
+50
+Pay: $1,538.46
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+r
+What Percentage Would You Like To Increease pay by: 
+4.5
+Adjusted Wages
+--------------
+Plumber, Phil		$41.80/hourly
+Coder, Carol		$83,600.00/year
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+d
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+q
+]0;reale_nf@cobra:~/Personneldb[reale_nf@cobra Personneldb]$ java PersonnelDatabase
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+u
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+p
+Current Wages
+--------------
+Plumber, Phil		$41.80/hourly
+Coder, Carol		$83,600.00/year
+==================================
+|Commands: n = New Employee      |
+|          c = Compute PayChecks |
+|          r = Raise Wages       |
+|          p = Print Records     |
+|          d = Download Data     |
+|          u = Upload Data       |
+|          q = quit              |
+==================================
+q
+]0;reale_nf@cobra:~/Personneldb[reale_nf@cobra Personneldb]$ exit
+
+Script done on Sun 06 Nov 2022 11:43:24 PM EST

@@ -1,0 +1,1392 @@
+Script started on Tue 11 Apr 2023 10:28:52 PM EDT
+]0;reale_nf@cobra:~/Project3[?1034h[reale_nf@cobra Project3]$ cat spellCheck.cpp 
+//Nicholas Reale
+//Spell Check
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <sstream>
+#include <string>
+#include <cctype>
+#include <queue>
+using namespace std;
+#include "HashTable.h"
+#include "BinarySearchTree.h"
+struct BNode{
+	string word;
+	int lineNum;
+	bool operator < (BNode otherStruct) const {
+		return (word < otherStruct.word);
+	}
+
+};
+
+typedef BinarySearchTree<BNode> BST;
+ostream & operator << (ostream & out, BNode & temp) {
+	out << temp.word << " " << temp.lineNum;
+	return out;
+}
+
+void fillDict( HashTable& Dict);
+void setup(int argc, char *argv[], queue<BNode>& wrong, HashTable Dict);
+void findInput(string LineIn, HashTable Dict, queue<BNode>& Wrong, int& lineNum);
+void PrintMenu(BNode TgtWord);
+void GetCmd(char& command);
+void SuggestWord(string word, HashTable Dict);
+string spellCheck(string word, HashTable Dict);
+void printToFile(BST WrongWords);
+BNode getNextWord(queue<BNode>& Q, HashTable Ignore);
+char doctorLine(char in);
+void addDict(string Word, HashTable& Dict);
+
+int main(int argc, char *argv[]){
+	//Vagirable Declorations
+	BNode NV = {"///", -1};
+	char command;
+	BNode TgtWord;	
+	//Object Declorations
+	queue<BNode> q;
+	BST wrongWords(NV);
+	HashTable Dict(500);
+	HashTable Ignore(500);
+	//Program Setup
+	fillDict(Dict);
+	setup(argc, argv, q, Dict);
+	TgtWord = getNextWord(q, Ignore);
+	//Program control
+	do{
+		PrintMenu(TgtWord);
+		GetCmd(command);
+		switch(command){
+			case 'A':
+				addDict(TgtWord.word, Dict);
+				wrongWords.insert(TgtWord);
+				TgtWord = getNextWord(q, Ignore);
+				break;
+			case 'I':
+				Ignore.insert(TgtWord.word);
+			case 'G':
+				wrongWords.insert(TgtWord);
+				TgtWord = getNextWord(q,Ignore);
+				break;
+			case 'S':
+				SuggestWord(TgtWord.word, Dict);
+				break;
+		} 
+	}while(command != 'Q' && TgtWord.word != "///");
+	//Printing to outfile
+	printToFile(wrongWords);
+	return 0;
+}
+
+void setup(int argc, char *argv[], queue<BNode>& wrong, HashTable Dict){
+	//Pre: Command Line arguments, and empty objects that will be refrenced later
+	//Post: Queue filled with all of the words that the program will say is wrong, and a hashtable that is filled with all the words in dict.txt.
+	if(argc == 1){
+		cout << "File Not Input" << endl;
+		exit(1);
+	}
+	if(argc > 2){
+		cout << "Too Many Command Line Arguments Try Again" <<endl;
+		exit(1);
+	}
+	else {
+		ifstream chkTarget;
+		string lineIn;
+		int lineNum = 1;
+		chkTarget.open(argv[1]);
+		if(chkTarget.fail()){
+			cout << "File Not Found" << endl;
+			exit(1);
+		}
+		while(getline(chkTarget, lineIn)){
+			findInput(lineIn, Dict, wrong, lineNum);
+		}
+	}
+};
+
+void findInput(string LineIn, HashTable Dict, queue<BNode>& Wrong, int& lineNum){
+	//Pre: Line from a file to be spell checked, the dictionary table, the Queue of wrong words and a line count
+	//Post: a Queue filled with all the BNodoes that the program is going to spell check.
+	transform(LineIn.begin(), LineIn.end(), LineIn.begin(), doctorLine);
+	//cout << LineIn <<endl;
+	stringstream linecheck(LineIn);
+	string word;
+	BNode s = {"///", lineNum};
+	while(linecheck >> word) {
+		if(Dict.find(word) == false){
+			s.word = word;
+			//cout << s << endl;
+			Wrong.push(s);
+		}	
+	}
+	lineNum++;
+}
+
+void fillDict(HashTable& Dict){
+	//Pre: empty Dict table
+	//Post: filled Dict with all words in Dict.txt
+	ifstream textF;
+	textF.open("dict.txt");
+	string lineIn;
+	if(textF.fail()){	
+	}
+	else{
+		while(getline(textF, lineIn)){
+			Dict.insert(lineIn);
+		}
+	}
+	textF.close();
+}
+
+void PrintMenu(BNode TgtWord){
+//Pre: BNode of current word
+//Post: Prints Menu
+cout<< "!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}" << endl;
+cout<< TgtWord.word << " On Line "<< TgtWord.lineNum << " Was Not Found In Dictionary" << endl;
+cout<< "A) Add the Word To Dictionary"<<endl;
+cout<< "I) Ignore Word, and Skip Future References" << endl;
+cout<< "G) Go On To Next Word" <<endl;
+cout<< "S) Serch For A Suggested Spelling"<<endl;
+cout<< "Q) Quit Spell Checking File" <<endl;
+cout << endl;
+cout << "Selection : ";
+}
+
+void GetCmd(char& command){
+//Pre: empty or used command char
+//Post: Command char filled with users next command	
+	char userInput[255];
+	cin >> userInput;
+
+	if(userInput != NULL && userInput[1] != ' '){
+		command = toupper(userInput[0]);
+	}
+	else{
+		command = 'X';
+	}
+}
+
+
+void SuggestWord(string word, HashTable Dict){
+//Pre: incorrect word and Dict table
+//Post: word is suggested if a simmilar word is found in the dictionary
+cout<< endl;
+string suggestion = spellCheck(word, Dict);
+if (suggestion != "///")
+	cout << "Suggested Spelling : " << suggestion << endl;
+else
+	cout << "No Suggested Spellings Found in Dictionary." << endl;
+cout << endl;
+cout << "Please Hit Return to Continue...";
+cin.ignore();
+cin.get();
+//cin.ignore();	
+}
+
+string spellCheck(string word, HashTable Dict){
+//Pre: Word to be spell checked and dictionary
+//Post: Suggested word or not found value depending on if a word was found in the dict
+	int f = 0;
+	for (int b = 1; b <= (word.size() -1); b++){
+		swap(word[f], word[b]);
+		if(Dict.find(word) == true)
+			return word;
+		swap(word[f], word[b]);
+		f++;
+	}
+	return "///";
+}
+void printToFile(BST WrongWords){
+//Pre: BST full of all the words that the program has interacted with(like the sample)
+//Post: File full of the words that were interacted with by the program
+	ofstream BSTout;
+	BSTout.open("notfound.txt");
+	WrongWords.printTree(BSTout);
+}
+char doctorLine(char in){
+//Called in the transform function
+//Pre: char that could be a symbol or lowercase letter
+//Post: either a pass through or a corrected char to an acceptable format for the program
+	if (in <= 'Z' && in >= 'A')
+		return in - ('Z' -'z');
+	if (in <= '@')
+		return ' ';
+	if (in <= '\''&& in >= '[')
+		return ' ';
+	if (in >= '{')
+		return ' ';
+	return in;
+
+}
+
+BNode getNextWord(queue<BNode>& Q, HashTable Ignore){
+//Pre: Queue of wrong words and the ignore table
+//Post: The next BNode the program will interact with
+	if(!Q.empty()){
+		BNode next = Q.front();
+		Q.pop();
+	
+		if (Ignore.find(next.word) == true)
+			return 	getNextWord(Q, Ignore);
+		else
+			return next;
+	}
+	else{
+		cout<< "The Spell Checking Is Complete Exiting File." << endl;
+		BNode NV = {"///",-1};
+		return NV;
+	}
+}
+
+void addDict(string Word, HashTable& Dict){
+//Pre: a word that will be appended to the dictionary
+//Post: the dict file is appended and the hash table has the word in it.
+	Dict.insert(Word);
+	ofstream dict("dict.txt", ios::app);
+	dict << Word << endl;
+	dict.close();
+}
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ g++ spellCheck.cpp 
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ ./a.out canterbury 
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+sweet On Line 1 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : A
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+showers On Line 1 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : I
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+pierced On Line 2 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : I
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+drought On Line 2 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+march On Line 2 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+root On Line 2 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+bathed On Line 3 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+vein On Line 3 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+moisture On Line 3 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+power On Line 4 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+bring On Line 4 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+forth On Line 4 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : 
+G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+flower On Line 4 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+zephyrus On Line 5 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+sweet On Line 5 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+breath On Line 5 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+breathed On Line 6 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+spirit On Line 6 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+tender On Line 6 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+shoots On Line 6 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+wood On Line 7 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+meadow On Line 7 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+young On Line 7 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+sun On Line 7 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+run On Line 8 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+half On Line 8 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+sign On Line 8 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+ram On Line 8 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+birds On Line 9 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+sing On Line 9 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+melodies On Line 9 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+sleep On Line 10 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+eyes On Line 10 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+open On Line 10 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : 
+G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+night On Line 10 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+so On Line 11 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+nature On Line 11 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+pricks On Line 11 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : 
+G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+hearts On Line 11 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+people On Line 12 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+long On Line 12 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+pilgrimages On Line 12 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+palmers On Line 13 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+long On Line 13 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+seek On Line 13 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : 
+G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+strange On Line 13 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+shores On Line 13 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+far On Line 14 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+off On Line 14 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+shrines On Line 14 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+known On Line 14 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+various On Line 14 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : 
+G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+lands On Line 14 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+especially On Line 15 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+shrine On Line 15 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+england On Line 16 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+canterbury On Line 16 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+seek On Line 17 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+holy On Line 17 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+blissful On Line 17 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+martyr On Line 17 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : 
+G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+who On Line 18 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+helped On Line 18 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+!@#$%^&*(){}    THE SPELL CHECKER PROGRAM    !@#$%^&*(){}
+sick On Line 18 Was Not Found In Dictionary
+A) Add the Word To Dictionary
+I) Ignore Word, and Skip Future References
+G) Go On To Next Word
+S) Serch For A Suggested Spelling
+Q) Quit Spell Checking File
+
+Selection : G
+The Spell Checking Is Complete Exiting File.
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ G
+bash: G: command not found...
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ G
+bash: G: command not found...
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ G
+bash: G: command not found...
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ G
+bash: G: command not found...
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ cat [K[K[K[Kcat notfound.txt 
+bathed 3
+birds 9
+blissful 17
+breath 5
+breathed 6
+bring 4
+canterbury 16
+drought 2
+england 16
+especially 15
+eyes 10
+far 14
+flower 4
+forth 4
+half 8
+hearts 11
+helped 18
+holy 17
+known 14
+lands 14
+long 12
+march 2
+martyr 17
+meadow 7
+melodies 9
+moisture 3
+nature 11
+night 10
+off 14
+open 10
+palmers 13
+people 12
+pierced 2
+pilgrimages 12
+power 4
+pricks 11
+ram 8
+root 2
+run 8
+seek 13
+shoots 6
+shores 13
+showers 1
+shrine 15
+shrines 14
+sick 18
+sign 8
+sing 9
+sleep 10
+so 11
+spirit 6
+strange 13
+sun 7
+sweet 1
+tender 6
+various 14
+vein 3
+who 18
+wood 7
+young 7
+zephyrus 5
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ cat dict.txt 
+at
+anonymous
+a
+already
+along
+after
+adjustments
+adapter
+about
+access
+accept
+actually
+adjust
+adapters
+address
+add
+additional
+advised
+almost
+all
+aims
+and
+an
+also
+alternatives
+anything
+any
+answer
+as
+anywhere
+appear
+are
+append
+april
+applies
+around
+assumes
+be
+attempt
+attached
+attention
+available
+base
+based
+behave
+beginning
+begin
+becoming
+before
+been
+bug
+brick
+boot
+blue
+both
+boots
+by
+but
+build
+built
+building
+bus
+button
+header
+disk
+detected
+channel
+cannot
+can
+cable
+cables
+called
+cant
+changes
+certain
+capacity
+cdrom
+card
+cartridges
+careful
+case
+certainly
+chained
+chain
+check
+design
+current
+copy
+converters
+command
+coexist
+clause
+choose
+choice
+collected
+comes
+come
+constant
+components
+complex
+compile
+compatible
+configured
+configuration
+computers
+console
+connects
+conjunction
+confusing
+configuring
+conflict
+connected
+connect
+connector
+connecting
+connectors
+contain
+contributions
+contained
+controller
+critical
+course
+couple
+correspond
+could
+correspondingly
+depends
+defaults
+currently
+data
+cylinders
+default
+day
+describes
+device
+dip
+devices
+discussion
+disappear
+driver
+diverted
+display
+disks
+distributions
+displayed
+drive
+do
+documented
+documentation
+document
+dont
+does
+door
+drives
+gives
+find
+easily
+drivers
+drives
+each
+else
+eject
+effect
+finally
+enabled
+every
+even
+errors
+ends
+enables
+enclosure
+enhancements
+file
+example
+exactly
+except
+existing
+fast
+family
+expect
+familiar
+extreme
+external
+features
+few
+female
+fetch
+fill
+files
+get
+for
+following
+firmly
+floppy
+flag
+from
+found
+forget
+force
+gear
+front
+gaps
+have
+has
+grant
+go
+hardware
+host
+here
+help
+high
+hold
+holding
+macintosh
+id
+i
+how
+identically
+introduction
+information
+if
+identifying
+identify
+in
+important
+included
+include
+incorporates
+into
+install
+insert
+internal
+interim
+intended
+instructions
+installation
+instance
+installed
+interface
+introduced
+look
+is
+kernels
+kernel
+it
+its
+itself
+jumpers
+like
+last
+large
+less
+lightweight
+log
+locks
+locked
+likely
+loadable
+line
+limited
+load
+list
+loaded
+loops
+lowlevel
+low
+make
+main
+major
+many
+male
+may
+markets
+sectors
+section
+screens
+mode
+messages
+megabytes
+menu
+might
+method
+missing
+modes
+model
+revision
+retrieve
+name
+must
+module
+most
+more
+modules
+months
+on
+need
+of
+not
+net
+next
+new
+nice
+normally
+no
+none
+numbers
+number
+note
+now
+obtained
+often
+port
+parts
+only
+once
+one
+parallel
+otherwise
+or
+others
+other
+oriented
+part
+parameter
+parameters
+partly
+particular
+pin
+pieces
+physically
+paul
+pay
+please
+plastic
+point
+popular
+pressed
+powerful
+powered
+possible
+ports
+portable
+report
+relevant
+released
+reboot
+read
+quite
+question
+published
+printer
+provide
+protocol
+process
+proprietary
+recent
+removed
+remember
+removable
+responsibility
+required
+resembling
+same
+sample
+screen
+sector
+torque
+the
+send
+selects
+select
+seen
+see
+should
+sequential
+several
+set
+setup
+shipped
+someone
+some
+slower
+similar
+shutdown
+since
+simultaneous
+small
+software
+something
+subdirectory
+speed
+somewhat
+soon
+specific
+source
+special
+specified
+starting
+stable
+start
+standard
+step
+style
+study
+such
+system
+syntax
+summary
+supplied
+switches
+support
+sure
+supports
+switch
+that
+terminated
+tells
+target
+terminators
+terminator
+termination
+thank
+to
+this
+them
+their
+these
+then
+there
+thing
+they
+things
+time
+three
+those
+thorough
+timing
+total
+touch
+type
+trouble
+try
+traditional
+tree
+two
+zip
+vendor
+using
+useful
+use
+types
+under
+unlocks
+used
+users
+uses
+usually
+would
+version
+were
+way
+versions
+want
+wall
+wants
+well
+will
+what
+when
+where
+which
+while
+with
+wiring
+work
+workaround
+your
+you
+zoom
+his
+thsi
+sweet
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ ^C
+]0;reale_nf@cobra:~/Project3[reale_nf@cobra Project3]$ exit
+
+Script done on Tue 11 Apr 2023 10:30:41 PM EDT

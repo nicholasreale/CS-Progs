@@ -1,0 +1,46 @@
+Spell Checker Program
+
+Main 
+	Contains variable declarations and Control Funtions
+	- the 5 control options are 
+		-Add to Dictionary
+		-Ignore Future Refrences
+		-Next
+		-Suggest Word
+		-Quit
+	- it will loop until Quit is selected
+
+void fillDict(HashTable& Dict)
+	Contains a function that will fill a hash table with words from "dict.txt"
+
+void setup(int argc, char *argv[], queue<BNode>& wrong, HashTable Dict)
+	reads the infile and creates a queue that is filled with all the misspelled words in the file 
+
+void findInput(sting LineIn, HashTable Dict, queue<BNode>& Wrong, int& lineNum)
+	used in the setup fuction, it will take a line of the file being checked then remove special chars
+	and make sure each word is not in the hashtable provided before adding it to the queue
+
+void PrintMenu(BNode TgtWord)
+	prints menue
+
+void GetCmd(char& command)
+	gets user input without crashing if something unexspected is input
+
+void SuggestWord(string word, HashTable Dict)
+	Prints a menu that shows the suggested word if there is one
+
+string spellCheck(string word, HashTable Dict)
+	Checks the hashtable provided for a simillar word
+
+void printToFile(BST WrongWords) 
+	prints the provided BST to a file called "notfound.txt" in the same way as seen in the sample
+
+char docotorLine(char in)
+	used in the transform function, it checks if the chars are acceptable formatting for the spell check
+
+BNode getNextWord(queue<BNode>& Q, HashTable Ignore)
+	makes sure the next BNode in the queue exists and is not in the ignore table provided to the function
+
+void addDict(string Word, HashTable& Dict)
+	adds the provided word to the provided hashtable and appends that word to the "dict.txt" file
+

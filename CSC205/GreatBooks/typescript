@@ -1,0 +1,505 @@
+Script started on Wed 12 Oct 2022 07:05:02 PM EDT
+]0;reale_nf@cobra:~/GreatBooks[?1034h[reale_nf@cobra GreatBooks]$ catLi[K[K Library.java
+import java.util.*;
+import java.io.*;
+public class Library{
+	private static int numBooks;
+	public static void main(String args[]){
+		ArrayList<LibraryBook> lib = new ArrayList(0); 
+		menu(lib); 
+	}
+	public static void filLib(String fileName, ArrayList<LibraryBook> lib){
+		try{
+			Scanner fileScan = new Scanner(new File(fileName));
+			while (fileScan.hasNextLine()){
+				Scanner lineScan = new Scanner(fileScan.nextLine()).useDelimiter(";");
+				String title = lineScan.next();	
+				String author = lineScan.next();
+				int cpright = lineScan.nextInt();
+				double price = lineScan.nextDouble();
+				String genre = lineScan.next();
+				LibraryBook chkTarget = new LibraryBook(title, author, cpright, price, genre);	
+				if (libSerch(lib, chkTarget) == -1){
+					lib.add(chkTarget);
+					numBooks++;
+				} 
+			}
+		}
+		catch(IOException e){
+			System.out.println(e.getMessage());
+		}
+		//Selection Sort algorithm
+		for (int i = 0; i<numBooks;i++){
+			int smallestIndex = i;
+			for(int j= i + 1; j < numBooks;j++){
+				if(lib.get(smallestIndex).compareTo(lib.get(j))>0){
+					smallestIndex=j;
+				}
+			}
+			LibraryBook swp = lib.get(i);
+			lib.set(i, lib.get(smallestIndex));
+			lib.set(smallestIndex, swp); 
+		}
+		lib.trimToSize();	
+	}
+	public static int libSerch(ArrayList<LibraryBook> lib, LibraryBook bookSerch){
+		int index = -1;
+		for(int i = 0; i<lib.size(); i++){
+			if(lib.get(i).compareTo(bookSerch) == 0){
+				index= i;
+			}
+		}	
+		return index;
+	}
+	public static int libSerch(ArrayList<LibraryBook> lib, String titleSerch){
+		int index= -1;
+		for(int i = 0; i<lib.size(); i++){
+			if(titleSerch.compareTo(lib.get(i).getTitle())==0){
+				index = i;
+			}
+		}
+		return index;	
+	}
+	public static void menu(ArrayList<LibraryBook> lib){
+		Scanner wait = new Scanner(System.in);
+		Scanner menu = new Scanner(System.in);
+		Scanner in = new Scanner(System.in);
+		int userChoice = 3;
+		boolean end = false;
+		while (true){
+		try{
+			while(end == false){
+				switch(userChoice){
+					case 0:
+						clearScreen();
+						System.out.println("\t\t\tTHE GREAT BOOKS SEARCH PROGRAM");
+						System.out.println("\t\t1) Display all book records");
+						System.out.println("\t\t2) Serch for a book by Title");
+						System.out.println("\t\t3) Add another Directory");
+						System.out.println("\t\t4) Exit Serch Program");
+						System.out.print("\t\tPlease Enter Your Choice>>");
+						userChoice = menu.nextInt();
+						break;
+					case 1:
+						int numPerPage = 4;
+						int firIndex = 0;
+						while (true){
+							clearScreen();
+							for(int i = 0; i<numPerPage; i++){
+								printRecord(lib, firIndex + i);	
+							}
+							System.out.println("Press Enter For Next Page");
+							wait.nextLine();
+							firIndex = firIndex + numPerPage;
+							if (firIndex > lib.size()){
+								break;
+							} 
+						}
+						userChoice = 0;
+						break;
+					case 2:
+						String SerchTarget;
+						int foundIndex;
+							clearScreen();
+							System.out.println("\t\t\t Enter your book you want to find");
+							SerchTarget = in.nextLine();
+							foundIndex = libSerch(lib, SerchTarget);
+							if (foundIndex >= 0){
+								clearScreen();
+								printRecord(lib,foundIndex);
+								System.out.println("Press Enter To Return To Menu");
+							}
+							else{
+								clearScreen();
+								System.out.println("Target not found, press enter to go back to the menu"); 
+							}
+							wait.nextLine();
+							userChoice = 0; 
+						break;
+					case 3:
+						boolean fileFound = false; 
+						File curDir = new File(".");
+						String[] fileNames = curDir.list();
+						ArrayList<String> data = new ArrayList<String>();
+				
+						for (String s:fileNames)
+							if(s.endsWith(".dat"))
+								data.add(s);
+						while(fileFound != true){
+							clearScreen();
+							System.out.println("\n\n\n\n\t\tHere are the files in your current directory");
+							System.out.print("\t\t");
+							for (int i = 0; i<data.size(); i++){
+								System.out.print(data.get(i)+" ");
+							}
+							System.out.println("\nFile Name:");
+							String fName = in.nextLine();
+							if(data.indexOf(fName) >= 0){
+								filLib(fName,lib);
+								fileFound = true;	
+							}
+							else{
+								clearScreen();
+								System.out.println("File Not Found Please Press Enter To Try Again");
+								wait.nextLine();
+							}
+						}
+						clearScreen();
+						System.out.println("\t\t\t a total of "+ numBooks + " have been input & sorted\n\t\t Please Hit Enter to Continue....");
+						userChoice = 0;
+						wait.nextLine();  
+						break;
+					case 4:
+						clearScreen();
+						System.out.println("Thank you Press Enter To Close");
+						end = true;
+						wait.nextLine();
+						break;
+					default:
+						userChoice = 0;
+						break;
+				} 		
+			}
+		break;
+		}
+		catch(Exception e){
+			System.out.println(e);		
+		}
+		}
+	}
+	public static void printLibrary(ArrayList<LibraryBook> lib,int srtI, int endI){
+		clearScreen();
+		for (int i = srtI; i<endI; i++){
+			printRecord(lib, i);
+		}
+	}
+	public static void printRecord(ArrayList<LibraryBook> lib, int location){
+		if(lib.size()>location){
+			System.out.println("*************************************************************************");
+			System.out.println("Record #" + (location + 1) + " :\n");
+			System.out.println("Title:          " + lib.get(location).getTitle());
+			System.out.println("Author's Name:  " + lib.get(location).getAuthor());
+			System.out.println("Copyright:   " + lib.get(location).getCopyright());
+ 			System.out.println("Price:          " + lib.get(location).getPrice());
+ 			System.out.println("Genre:   " + lib.get(location).getGenre() + "\n");
+		}
+	}
+	public static void clearScreen(){
+		System.out.println("\u001b[H\u001b[2J");
+	}
+}
+]0;reale_nf@cobra:~/GreatBooks[reale_nf@cobra GreatBooks]$ java c [K[K[K[Ka[Kac [K library.dat [K[K[K[K[K[K[K[K[K[K[K[KLibrary.java
+Note: Library.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+]0;reale_nf@cobra:~/GreatBooks[reale_nf@cobra GreatBooks]$ java Library
+[H[2J
+
+
+
+
+		Here are the files in your current directory
+		library.dat play.dat 
+File Name:
+a
+[H[2J
+File Not Found Please Press Enter To Try Again
+
+[H[2J
+
+
+
+
+		Here are the files in your current directory
+		library.dat play.dat 
+File Name:
+library.dat
+[H[2J
+			 a total of 15 have been input & sorted
+		 Please Hit Enter to Continue....
+
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>3
+[H[2J
+
+
+
+
+		Here are the files in your current directory
+		library.dat play.dat 
+File Name:
+play.dat
+[H[2J
+			 a total of 16 have been input & sorted
+		 Please Hit Enter to Continue....
+
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>5
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>1
+[H[2J
+*************************************************************************
+Record #1 :
+
+Title:          Animal Farm
+Author's Name:  Orwell, George
+Copyright:   1978
+Price:          10.0
+Genre:   f
+
+*************************************************************************
+Record #2 :
+
+Title:          Canterbury Tales
+Author's Name:  Chaucer, Geoffrey
+Copyright:   1965
+Price:          20.0
+Genre:   d
+
+*************************************************************************
+Record #3 :
+
+Title:          Christmas Carol
+Author's Name:  Dickens, Charles
+Copyright:   1966
+Price:          12.5
+Genre:   f
+
+*************************************************************************
+Record #4 :
+
+Title:          Great Gatsby
+Author's Name:  Fitzgerald, F. Scott
+Copyright:   1979
+Price:          5.99
+Genre:   f
+
+Press Enter For Next Page
+
+[H[2J
+*************************************************************************
+Record #5 :
+
+Title:          Heart of Darkness
+Author's Name:  Conrad, Joseph
+Copyright:   1970
+Price:          14.45
+Genre:   f
+
+*************************************************************************
+Record #6 :
+
+Title:          Last of the Mohicans
+Author's Name:  Cooper, James Fenimore
+Copyright:   1968
+Price:          8.75
+Genre:   f
+
+*************************************************************************
+Record #7 :
+
+Title:          Leaves of Grass
+Author's Name:  Whitman, Walt
+Copyright:   1975
+Price:          29.99
+Genre:   p
+
+*************************************************************************
+Record #8 :
+
+Title:          Les Miserables
+Author's Name:  Hugo, Victor
+Copyright:   1988
+Price:          19.98
+Genre:   f
+
+Press Enter For Next Page
+
+[H[2J
+*************************************************************************
+Record #9 :
+
+Title:          Moby Dick
+Author's Name:  Melville, Herman
+Copyright:   1962
+Price:          13.98
+Genre:   f
+
+*************************************************************************
+Record #10 :
+
+Title:          Odyssey
+Author's Name:  Homer
+Copyright:   1950
+Price:          9.99
+Genre:   f
+
+*************************************************************************
+Record #11 :
+
+Title:          Old Man and the Sea
+Author's Name:  Hemingway, Ernest
+Copyright:   1966
+Price:          9.95
+Genre:   f
+
+*************************************************************************
+Record #12 :
+
+Title:          Romeo and Juliet
+Author's Name:  Shakespeare, William
+Copyright:   1980
+Price:          4.99
+Genre:   d
+
+Press Enter For Next Page
+
+[H[2J
+*************************************************************************
+Record #13 :
+
+Title:          Scarlet Letter
+Author's Name:  Hawthorne, Nathaniel
+Copyright:   1981
+Price:          4.78
+Genre:   f
+
+*************************************************************************
+Record #14 :
+
+Title:          The Illiad
+Author's Name:  Homer
+Copyright:   1892
+Price:          5.6
+Genre:   p
+
+*************************************************************************
+Record #15 :
+
+Title:          Tom Sawyer
+Author's Name:  Twain, Mark
+Copyright:   1972
+Price:          8.5
+Genre:   f
+
+*************************************************************************
+Record #16 :
+
+Title:          Whisper of the River
+Author's Name:  Sams, Ferrol
+Copyright:   1984
+Price:          21.95
+Genre:   f
+
+Press Enter For Next Page
+
+[H[2J
+Press Enter For Next Page
+
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>4 2
+[H[2J
+			 Enter your book you want to find
+Odd yssey
+[H[2J
+*************************************************************************
+Record #10 :
+
+Title:          Odyssey
+Author's Name:  Homer
+Copyright:   1950
+Price:          9.99
+Genre:   f
+
+Press Enter To Return To Menu
+
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>2
+[H[2J
+			 Enter your book you want to find
+Animal Farm
+[H[2J
+*************************************************************************
+Record #1 :
+
+Title:          Animal Farm
+Author's Name:  Orwell, George
+Copyright:   1978
+Price:          10.0
+Genre:   f
+
+Press Enter To Return To Menu
+
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>2
+[H[2J
+			 Enter your book you want to find
+Last of the Mohici ans
+[H[2J
+*************************************************************************
+Record #6 :
+
+Title:          Last of the Mohicans
+Author's Name:  Cooper, James Fenimore
+Copyright:   1968
+Price:          8.75
+Genre:   f
+
+Press Enter To Return To Menu
+
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>2
+[H[2J
+			 Enter your book you want to find
+Macbeth
+[H[2J
+Target not found, press enter to go back to the menu
+
+[H[2J
+			THE GREAT BOOKS SEARCH PROGRAM
+		1) Display all book records
+		2) Serch for a book by Title
+		3) Add another Directory
+		4) Exit Serch Program
+		Please Enter Your Choice>>4
+[H[2J
+Thank you Press Enter To Close
+
+]0;reale_nf@cobra:~/GreatBooks[reale_nf@cobra GreatBooks]$ exit
+exit
+
+Script done on Wed 12 Oct 2022 07:09:35 PM EDT

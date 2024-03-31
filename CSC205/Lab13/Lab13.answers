@@ -1,0 +1,9 @@
+binary Trree Properties
+	1) 2 leaves
+	2) 1 Node
+	3) Height is 3
+	4) (2^4 - 1) = 15 Nodes
+	5) No, A full tree is a tree with the maximum number of nodes possible on it for its particular height. this one has room for 6 more nodes.
+	6) This is not a complete tree as there is a gap on the bottom, as there is no child on the left t of D and there is a gap between F and T
+	7) Thes tree is balanced as there as the height on the left is 3 and the height on the right is 33. The height at the leaves also only differs by one.
+\ 

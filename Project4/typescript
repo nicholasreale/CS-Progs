@@ -1,0 +1,71 @@
+Script started on Wed 03 May 2023 10:02:50 PM EDT
+]0;reale_nf@cobra:~/Project4[?1034h[reale_nf@cobra Project4]$ g++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11
+]0;reale_nf@cobra:~/Project4[reale_nf@cobra Project4]$ g++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11ls[Kcd Project4./a.out ginfile1.dat [10Pcd Project4ls[Kg++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11[Kg++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11ls[Kcd Project4./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11[10Pcat dijkstra.cpp g++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11clear[Kg++ dijkstra.cpp -std=c++11[10Pcat ginfile1.dat [4@./a.ou[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cg++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat g++ dijkstra.cpp -std=c++11[6P./a.out ginfile1.dat [K
+		    ^^^^^^^^^^^^^^^^^^^^^	DIJKSTRA'S ALGORITHM	^^^^^^^^^^^^^^^^^^^^^	   
+
+		    A Weighted Graph Has Been Built For These 7 Cities:
+
+                       Atlanta                        Austin                       Chicago
+                        Dallas                        Denver                       Houston
+                    Washington
+
+		    Please Enter Your Starting Vertex: Atlanta
+--------------------------------------------------------------------------------------------------------     
+                        Vertex                      Distance                      Previous
+
+                       Atlanta                             0                           N/A
+                    Washington                           600                       Atlanta
+                       Houston                           800                       Atlanta
+                        Dallas                          1900                    Washington
+                        Austin                          2100                        Dallas
+                        Denver                          2680                        Dallas
+                       Chicago                          2800                        Dallas
+]0;reale_nf@cobra:~/Project4[reale_nf@cobra Project4]$ ./a.out ginfile1.dat[1P.dat2.dat
+		    ^^^^^^^^^^^^^^^^^^^^^	DIJKSTRA'S ALGORITHM	^^^^^^^^^^^^^^^^^^^^^	   
+
+		    A Weighted Graph Has Been Built For These 7 Cities:
+
+                            V1                            V2                            V3
+                            V4                            V5                            V6
+                            V7
+
+		    Please Enter Your Starting Vertex: V1
+--------------------------------------------------------------------------------------------------------     
+                        Vertex                      Distance                      Previous
+
+                            V1                             0                           N/A
+                            V4                             1                            V1
+                            V2                             2                            V1
+                            V5                             3                            V4
+                            V3                             3                            V4
+                            V7                             5                            V4
+                            V6                             6                            V7
+]0;reale_nf@cobra:~/Project4[reale_nf@cobra Project4]$ ./a.out ginfile2.dat[1P.dat3.dat
+		    ^^^^^^^^^^^^^^^^^^^^^	DIJKSTRA'S ALGORITHM	^^^^^^^^^^^^^^^^^^^^^	   
+
+		    A Weighted Graph Has Been Built For These 12 Cities:
+
+                        Athens                       Atlanta                       Augusta
+                        Baxley                       Conyers                Ft. Oglethorpe
+                         Macon                      Norcross                      Savannah
+                       Suwanee                      Valdosta                 Warner Robins
+
+		    Please Enter Your Starting Vertex: Warner Robins
+--------------------------------------------------------------------------------------------------------     
+                        Vertex                      Distance                      Previous
+
+                 Warner Robins                             0                           N/A
+                         Macon                            20                 Warner Robins
+                       Atlanta                           100                         Macon
+                       Conyers                           110                         Macon
+                        Athens                           110                         Macon
+                      Norcross                           120                       Atlanta
+                       Suwanee                           130                       Atlanta
+                        Baxley                           140                         Macon
+                      Valdosta                           170                         Macon
+                      Savannah                           180                         Macon
+                       Augusta                           200                        Athens
+                Ft. Oglethorpe                           210                       Atlanta
+]0;reale_nf@cobra:~/Project4[reale_nf@cobra Project4]$  ^^^^^^^^^^^^^^^^    DIJKSTRA'S ALGORITHM    ^^^^^^^^^^^^^^^^[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[Kexit
+
+Script done on Wed 03 May 2023 10:04:04 PM EDT

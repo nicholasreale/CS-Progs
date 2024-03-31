@@ -1,0 +1,4 @@
+I need to generate a card/s and place it in an array.
+I need to make a play method, that will initalize and loop the program.
+I need to generate a number and mark the card and add it to a list of used numbers.
+I need to check for a win and print which type of win it is.

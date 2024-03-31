@@ -1,0 +1,10 @@
+Start
+	- takes the command line arguments and decides what to do with it.
+	- Fills list L with the text in the file
+	- will not start if it doesn't like them
+ldFile
+	-once the program is done it will write what is in the list L
+getCmd
+	-Gets the next command from the user and passes it through.
+InsertLine
+	-Inserting a line needs a little more front end code, so that code is done in this method. 
